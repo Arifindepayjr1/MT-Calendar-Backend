@@ -1,0 +1,164 @@
+{
+  "info": {
+    "name": "TraderLog API",
+    "description": "NestJS + Postgres backend for TraderLog. Run Auth → Sign up or Login first; the token is stored in the collection variable `token` and used by protected requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "email", "value": "trader@example.com" },
+    { "key": "password", "value": "secret123" },
+    { "key": "name", "value": "Trader" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) {",
+                  "  pm.collectionVariables.set('token', body.accessToken);",
+                  "  console.log('Saved accessToken to collection variable token');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"{{name}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/signup",
+            "description": "201 with accessToken, tokenType, expiresIn and user. Duplicate email returns 409."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) {",
+                  "  pm.collectionVariables.set('token', body.accessToken);",
+                  "  console.log('Saved accessToken to collection variable token');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "200 with the same token shape as Sign up. Bad credentials return 401."
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Requires Bearer token. Returns id, email and name only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Strategies",
+      "item": [
+        {
+          "name": "Get strategy overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/strategies",
+            "description": "Public. Returns playbooks[] and summary from Postgres."
+          }
+        },
+        {
+          "name": "Get silver bullet detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/strategies/pb_silver_bullet",
+            "description": "Public. Returns hero telemetry, entry/risk rules and MT5 tickets."
+          }
+        },
+        {
+          "name": "Get my drafts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/strategies/drafts",
+            "description": "Requires Bearer token. Returns the signed-in user's drafts, newest first."
+          }
+        },
+        {
+          "name": "Create strategy draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"London Sweep\",\n  \"description\": \"Sweep London liquidity then trade displacement\",\n  \"category\": \"ictSmc\",\n  \"categories\": [\"ictSmc\"],\n  \"narrative\": \"Sweep the London low, then trade the displacement.\",\n  \"entryConditions\": [\n    { \"text\": \"Mark the macro window on 15M\", \"enabled\": true },\n    { \"text\": \"Confirm liquidity grab / sweep\", \"enabled\": true }\n  ],\n  \"takeProfitRule\": \"TP1 at 2R, TP2 at session range extension\",\n  \"stopLossRule\": \"Stop beyond sweep extreme + 5 pip buffer\",\n  \"invalidationRule\": \"Invalidate if liquidity pool is reclaimed\",\n  \"disciplineRules\": [\n    { \"text\": \"No entry before macro window opens\", \"enabled\": true }\n  ],\n  \"sessions\": [\"London\", \"New York\"],\n  \"intervals\": [\"15M\", \"5M\", \"1M\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/strategies",
+            "description": "Requires Bearer token and non-empty name. Persists the full payload in Postgres."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Candles",
+      "item": [
+        {
+          "name": "Get candles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/candles?symbol=AAPL&interval=1d&period1=1762000000&period2=1763000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "candles"],
+              "query": [
+                { "key": "symbol", "value": "AAPL" },
+                { "key": "interval", "value": "1d" },
+                { "key": "period1", "value": "1762000000" },
+                { "key": "period2", "value": "1763000000" }
+              ]
+            },
+            "description": "Public Yahoo Finance proxy used by the chart."
+          }
+        }
+      ]
+    }
+  ]
+}
