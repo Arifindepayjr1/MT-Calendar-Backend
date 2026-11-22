@@ -1,0 +1,19 @@
+meta {
+  name: Method not allowed (POST)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/candles
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Expected: 405 {"error":"Only GET is supported."}
+}

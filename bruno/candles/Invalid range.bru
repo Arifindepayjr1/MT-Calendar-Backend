@@ -1,0 +1,19 @@
+meta {
+  name: Invalid range
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/candles?symbol={{symbol}}&interval=1d&period1=1&period2=2
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Expected: 400 {"error":"Invalid candle time range."}
+}

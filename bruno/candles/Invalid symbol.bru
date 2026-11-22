@@ -1,0 +1,19 @@
+meta {
+  name: Invalid symbol
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/candles?symbol=%24%24BAD%20SYMBOL&interval=1d&period1={{period1}}&period2={{period2}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Expected: 400 {"error":"Invalid market symbol."}
+}

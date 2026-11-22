@@ -1,0 +1,19 @@
+meta {
+  name: Invalid interval
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/candles?symbol={{symbol}}&interval=2h&period1={{period1}}&period2={{period2}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Expected: 400 {"error":"Invalid candle interval."}
+}

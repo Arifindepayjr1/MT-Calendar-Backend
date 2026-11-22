@@ -1,0 +1,21 @@
+meta {
+  name: Get candles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/candles?symbol={{symbol}}&interval={{interval}}&period1={{period1}}&period2={{period2}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Proxies Yahoo Finance OHLC data.
+  Query params: symbol, interval (1m/5m/15m/30m/1h/4h/1d), period1, period2 (unix seconds).
+  Expected: 200 with the Yahoo chart payload.
+}
