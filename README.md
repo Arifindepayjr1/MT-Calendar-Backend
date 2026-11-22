@@ -36,6 +36,7 @@ and skip `db:up`; the schema is created automatically by TypeORM
 | `DB_SYNCHRONIZE` | `true`                      | Auto-create schema (dev only)    |
 | `JWT_SECRET`     | dev placeholder             | Signing secret — change in prod  |
 | `JWT_EXPIRES_IN` | `7d`                        | Access token lifetime            |
+| `AUTH_DEV_CODE`  | `true`                      | Echo OTP in responses (dev only) |
 
 Never commit `.env`; use `.env.example` as the template.
 
@@ -43,7 +44,8 @@ Never commit `.env`; use `.env.example` as the template.
 
 | Entity         | Table             | Notes                                                       |
 | -------------- | ----------------- | ----------------------------------------------------------- |
-| `User`         | `users`           | Unique email, bcrypt password hash (never returned)         |
+| `User`         | `users`           | Unique email, bcrypt hash, trading framework (never returned) |
+| `AuthCode`     | `auth_codes`      | Hashed 6-digit code, password hash, 10-minute expiry         |
 | `Playbook`     | `playbooks`       | Cards + hero/telemetry figures, seeded on first run         |
 | `StrategyRule` | `strategy_rules`  | Entry/risk checklist rows, cascade-deleted with a playbook  |
 | `StrategyTrade`| `strategy_trades` | Assigned MT5 tickets, cascade-deleted with a playbook       |
@@ -59,11 +61,19 @@ All paths are prefixed with `/api`.
 | ------ | ----------------- | ------------------------------------- | ----------------------------------------- |
 | POST   | `/auth/signup`    | `{ email, password, name }`           | `201` + `{ accessToken, user, ... }`      |
 | POST   | `/auth/login`     | `{ email, password }`                 | `200` + same token shape (`/signin` alias)|
-| GET    | `/auth/me`        | `Authorization: Bearer <token>`       | `200` + `{ id, email, name }`             |
+| POST   | `/auth/request-code` | `{ email, password, name, framework? }` | `200` + `{ email, expiresInSeconds, devCode? }` |
+| POST   | `/auth/verify-code`  | `{ email, code }`                       | `200` + same token shape; creates the user     |
+| GET    | `/auth/me`        | `Authorization: Bearer <token>`       | `200` + `{ id, email, name, framework? }`      |
 
 Passwords must be 8–72 characters. A duplicate email returns `409`; bad
 credentials return `401`. Send the returned `accessToken` as a Bearer token on
 protected requests.
+
+The two `*-code` endpoints back the Flutter Create Account → OTP flow. Codes
+are bcrypt-hashed in Postgres, expire after 10 minutes, allow five attempts and
+are deleted on success. No email/SMS provider is configured, so development
+returns the code as `devCode` (disable with `AUTH_DEV_CODE=false`; never enable
+it in production). A wrong code returns `401`, an expired one `400`.
 
 ### Candles (public)
 
@@ -99,7 +109,16 @@ curl -X POST http://localhost:3000/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"trader@example.com","password":"secret123"}'
 
-TOKEN=<accessToken from either response>
+# Passwordless onboarding (returns devCode locally)
+curl -X POST http://localhost:3000/api/auth/request-code \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"newtrader@example.com","password":"secret123","name":"Alex","framework":"ICT / SMC"}'
+
+curl -X POST http://localhost:3000/api/auth/verify-code \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"newtrader@example.com","code":"<devCode>"}'
+
+TOKEN=<accessToken from any response above>
 curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/strategies/drafts
 
 curl -X POST http://localhost:3000/api/strategies \
@@ -114,7 +133,8 @@ curl -X POST http://localhost:3000/api/strategies \
 Open Bruno → **Add Collection → Directory** → select `backend/bruno`. Pick the
 `local` environment. Run `auth/Sign up`, then `auth/Login`; the login script
 stores `accessToken` in the environment variable `token`, which the protected
-strategy requests use automatically.
+strategy requests use automatically. For the OTP flow run `auth/Request code`
+(saves `devCode` to `otp`) then `auth/Verify code` (saves a fresh `token`).
 
 ### Postman
 
@@ -122,7 +142,8 @@ Import `backend/postman/TraderLog.postman_collection.json` and
 `backend/postman/TraderLog.local.postman_environment.json` (Import → Files).
 Select the **TraderLog local** environment, then run **Auth → Sign up** or
 **Auth → Login** first; both save the token to the `token` variable used by the
-protected requests.
+protected requests. **Auth → Request code** saves `devCode` to `otp`; follow it
+with **Auth → Verify code** to exercise the OTP screen's backend flow.
 
 ## Notes
 

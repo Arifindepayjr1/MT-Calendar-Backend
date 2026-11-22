@@ -1,0 +1,36 @@
+meta {
+  name: Verify code
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/auth/verify-code
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "code": "{{otp}}"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (data && data.accessToken) {
+    bru.setEnvVar('token', data.accessToken);
+  }
+}
+
+docs {
+  200 creates the trader account from the requested code and returns a JWT,
+  saved to the local `token` variable. Wrong codes return 401; expired codes
+  return 400. Use a fresh email after a successful verification.
+}

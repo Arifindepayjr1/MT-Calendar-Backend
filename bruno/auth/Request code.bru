@@ -1,0 +1,38 @@
+meta {
+  name: Request code
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/request-code
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "name": "{{name}}",
+    "framework": "{{framework}}"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (data && data.devCode) {
+    bru.setEnvVar('otp', data.devCode);
+  }
+}
+
+docs {
+  200 with expiresInSeconds (600). In development the response also contains
+  `devCode`, saved to the local `otp` variable for Verify code.
+  No email/SMS provider is configured in this workspace.
+}

@@ -12,6 +12,8 @@
     { "key": "email", "value": "trader@example.com" },
     { "key": "password", "value": "secret123" },
     { "key": "name", "value": "Trader" },
+    { "key": "framework", "value": "ICT / SMC" },
+    { "key": "otp", "value": "" },
     { "key": "token", "value": "" }
   ],
   "item": [
@@ -77,12 +79,70 @@
           }
         },
         {
+          "name": "Request code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.devCode) {",
+                  "  pm.collectionVariables.set('otp', body.devCode);",
+                  "  console.log('Saved devCode to collection variable otp');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"{{name}}\",\n  \"framework\": \"{{framework}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/request-code",
+            "description": "200 with expiresInSeconds. Development echoes devCode and saves it to `otp`; no email/SMS provider is configured."
+          }
+        },
+        {
+          "name": "Verify code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) {",
+                  "  pm.collectionVariables.set('token', body.accessToken);",
+                  "  console.log('Saved accessToken to collection variable token');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"code\": \"{{otp}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/verify-code",
+            "description": "200 creates the account and returns a JWT saved to `token`. Use a fresh email after success."
+          }
+        },
+        {
           "name": "Me",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": "{{baseUrl}}/api/auth/me",
-            "description": "Requires Bearer token. Returns id, email and name only."
+            "description": "Requires Bearer token. Returns id, email, name and framework."
           }
         }
       ]
