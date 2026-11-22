@@ -1,0 +1,20 @@
+meta {
+  name: Get silver bullet detail
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3000/api/strategies/pb_silver_bullet
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Ready to send with no setup needed.
+  Expected: 200 with statusLabel, entryRules, riskRules and trades.
+}

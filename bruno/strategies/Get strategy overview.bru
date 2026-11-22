@@ -1,0 +1,20 @@
+meta {
+  name: Get strategy overview
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/strategies
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Ready to send with no setup needed.
+  Expected: 200 with playbooks[] and summary.
+}

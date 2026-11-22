@@ -1,0 +1,45 @@
+meta {
+  name: Create strategy draft
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/strategies
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "name": "London Sweep",
+    "description": "Sweep London liquidity then trade displacement",
+    "category": "ictSmc",
+    "categories": ["ictSmc"],
+    "narrative": "Sweep the London low, then trade the displacement.",
+    "entryConditions": [
+      { "text": "Mark the macro window on 15M", "enabled": true },
+      { "text": "Confirm liquidity grab / sweep", "enabled": true }
+    ],
+    "takeProfitRule": "TP1 at 2R, TP2 at session range extension",
+    "stopLossRule": "Stop beyond sweep extreme + 5 pip buffer",
+    "invalidationRule": "Invalidate if liquidity pool is reclaimed",
+    "disciplineRules": [
+      { "text": "No entry before macro window opens", "enabled": true }
+    ],
+    "sessions": ["London", "New York"],
+    "intervals": ["15M", "5M", "1M"]
+  }
+}
+
+docs {
+  Requires the Bearer token saved by Sign up or Login and a non-empty name.
+  Expected: 201 with id, name, savedAt and draftCount.
+  The full payload is persisted in Postgres `strategy_drafts` for this user.
+}

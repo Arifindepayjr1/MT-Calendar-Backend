@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/candles
+  url: http://localhost:3000/api/candles
   body: none
   auth: none
 }
@@ -15,5 +15,6 @@ headers {
 }
 
 docs {
+  Ready to send with no setup needed.
   Expected: 405 {"error":"Only GET is supported."}
 }

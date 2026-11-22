@@ -1,0 +1,22 @@
+meta {
+  name: Get my drafts
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/strategies/drafts
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Requires the Bearer token saved by Sign up or Login.
+  Expected: 200 with an array of the signed-in user's drafts, newest first.
+  Drafts are persisted in Postgres `strategy_drafts`.
+}

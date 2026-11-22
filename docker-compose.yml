@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: traderlog
+      POSTGRES_PASSWORD: traderlog
+      POSTGRES_DB: traderlog
+    ports:
+      - '5433:5432'
+    volumes:
+      - traderlog_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U traderlog -d traderlog']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  traderlog_pgdata:

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/candles?symbol=%24%24BAD%20SYMBOL&interval=1d&period1={{period1}}&period2={{period2}}
+  url: http://localhost:3000/api/candles?symbol=%24%24BAD%20SYMBOL&interval=1d&period1=1762000000&period2=1763000000
   body: none
   auth: none
 }
@@ -15,5 +15,6 @@ headers {
 }
 
 docs {
+  Ready to send with no setup needed.
   Expected: 400 {"error":"Invalid market symbol."}
 }

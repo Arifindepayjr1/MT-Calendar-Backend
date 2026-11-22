@@ -1,0 +1,21 @@
+meta {
+  name: Me
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/auth/me
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  Requires the Bearer token saved by Sign up or Login.
+  Expected: 200 with id, email and name. No password hash is returned.
+}

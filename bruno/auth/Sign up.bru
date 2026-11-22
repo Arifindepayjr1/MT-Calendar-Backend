@@ -1,0 +1,37 @@
+meta {
+  name: Sign up
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/auth/signup
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "name": "{{name}}"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (data && data.accessToken) {
+    bru.setEnvVar('token', data.accessToken);
+  }
+}
+
+docs {
+  201 with accessToken, tokenType, expiresIn and user.
+  The token is saved to the local environment's `token` variable.
+  Reusing an existing email returns 409 — use Login instead.
+}
