@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { CandlesModule } from './candles/candles.module';
+import { Mt5Module } from './mt5/mt5.module';
 import { StrategiesModule } from './strategies/strategies.module';
+import { WorkbookReportModule } from './workbook-report/workbook-report.module';
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { StrategiesModule } from './strategies/strategies.module';
         synchronize: config.get<string>('DB_SYNCHRONIZE') !== 'false',
       }),
     }),
-    CandlesModule,
+    Mt5Module,
     AuthModule,
     StrategiesModule,
+    WorkbookReportModule,
   ],
 })
 export class AppModule {}

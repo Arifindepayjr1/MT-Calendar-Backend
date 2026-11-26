@@ -3,3 +3,8 @@ dist/
 *.tsbuildinfo
 .env
 .pgdata/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 · TraderLog API</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --panel: #121a2e;
+        --line: #24304d;
+        --text: #e8eefc;
+        --muted: #9aa8c7;
+        --accent: #6ee7b7;
+        --warn: #fbbf24;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 12% 8%, rgba(110, 231, 183, 0.12), transparent 32%),
+          radial-gradient(circle at 88% 92%, rgba(96, 165, 250, 0.14), transparent 34%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .card {
+        width: min(720px, 100%);
+        padding: 36px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent), var(--panel);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        border-radius: 999px;
+        background: rgba(251, 191, 36, 0.1);
+        color: var(--warn);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 16px 0 8px;
+        font-size: clamp(30px, 7vw, 52px);
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+      }
+
+      .hint {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .code {
+        margin-top: 22px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #0a0f1d;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+      }
+
+      .code strong {
+        color: var(--warn);
+      }
+
+      .routes {
+        display: grid;
+        gap: 10px;
+        margin-top: 22px;
+      }
+
+      .route {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #0d1526;
+      }
+
+      .method {
+        min-width: 48px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(110, 231, 183, 0.12);
+        color: var(--accent);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .route a,
+      .route .path {
+        color: var(--text);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .route a:hover {
+        text-decoration: underline;
+      }
+
+      .route .hint {
+        margin-left: auto;
+        font-size: 12px;
+      }
+
+      footer {
+        margin-top: 26px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: var(--accent);
+      }
+
+      @media (max-width: 520px) {
+        .card {
+          padding: 24px;
+        }
+
+        .route .hint {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <span class="badge">HTTP 404 · Not Found</span>
+      <h1>This API route doesn't exist</h1>
+      <p class="hint">
+        The TraderLog backend is running, but the address below is not a registered endpoint.
+        Use one of the routes shown here instead.
+      </p>
+
+      <div class="code"><strong>{{METHOD}}</strong> {{PATH}}</div>
+
+      <section class="routes" aria-label="Available endpoints">
+        <div class="route">
+          <span class="method">GET</span>
+          <a href="/api/strategies">/api/strategies</a>
+          <span class="hint">playbook cards</span>
+        </div>
+        <div class="route">
+          <span class="method">GET</span>
+          <a href="/api/strategies/pb_silver_bullet">/api/strategies/:id</a>
+          <span class="hint">rulebook detail</span>
+        </div>
+        <div class="route">
+          <span class="method">GET</span>
+          <a href="/api/mt5/status">/api/mt5/status</a>
+          <span class="hint">MT5 terminal connection</span>
+        </div>
+        <div class="route">
+          <span class="method">GET</span>
+          <a href="/api/mt5/candles?symbol=XAUUSDc&amp;date=2026-11-24&amp;timeframe=M15">/api/mt5/candles</a>
+          <span class="hint">real broker OHLC session</span>
+        </div>
+        <div class="route">
+          <span class="method">POST</span>
+          <span class="path">/api/auth/login</span>
+          <span class="hint">JWT login</span>
+        </div>
+      </section>
+
+      <p class="hint" style="margin-top: 20px">
+        Looking for the app UI? Run the Flutter client with
+        <code>flutter run -d chrome</code> or <code>flutter run -d windows</code>.
+        This server exposes only the API.
+      </p>
+
+      <footer>TraderLog backend · <code>/api</code> is the route prefix, not a page.</footer>
+    </main>
+  </body>
+</html>

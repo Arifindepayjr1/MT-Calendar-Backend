@@ -1,0 +1,4 @@
+# Internal MetaTrader 5 stdio worker
+# Use Python 3.12. The official MetaTrader5 wheel does not support Python 3.15.
+MetaTrader5>=5.0.0
+pytest>=8.0.0

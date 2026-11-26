@@ -104,7 +104,7 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": "{{baseUrl}}/api/auth/request-code",
-            "description": "200 with expiresInSeconds. Development echoes devCode and saves it to `otp`; no email/SMS provider is configured."
+            "description": "200 with expiresInSeconds. With SMTP_APP_PASSWORD set, the code is emailed to `email` and devCode is omitted; otherwise development returns devCode and saves it to `otp`."
           }
         },
         {

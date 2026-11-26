@@ -32,7 +32,7 @@ script:post-response {
 }
 
 docs {
-  200 with expiresInSeconds (600). In development the response also contains
-  `devCode`, saved to the local `otp` variable for Verify code.
-  No email/SMS provider is configured in this workspace.
+  200 with expiresInSeconds (600). With SMTP_APP_PASSWORD set, the code is
+  emailed to `email`, delivery is "email" and no code is returned. Without it,
+  development returns delivery "dev" plus `devCode`, saved to local `otp`.
 }

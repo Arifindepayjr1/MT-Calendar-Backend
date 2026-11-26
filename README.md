@@ -2,7 +2,8 @@
 
 NestJS + Postgres + TypeORM backend for TraderLog. It owns:
 
-- the Yahoo Finance candle proxy used by the trade detail charts;
+- MT5 broker-session history for the trade detail charts via an internal Python
+  stdio worker — the only chart feed;
 - the strategy catalogue, rulebook telemetry, verification rules and MT5 tickets;
 - user accounts, JWT login/sign-up and per-user strategy drafts.
 
@@ -36,7 +37,18 @@ and skip `db:up`; the schema is created automatically by TypeORM
 | `DB_SYNCHRONIZE` | `true`                      | Auto-create schema (dev only)    |
 | `JWT_SECRET`     | dev placeholder             | Signing secret — change in prod  |
 | `JWT_EXPIRES_IN` | `7d`                        | Access token lifetime            |
-| `AUTH_DEV_CODE`  | `true`                      | Echo OTP in responses (dev only) |
+| `SMTP_USER`      | `arifindepayjr@gmail.com`   | Gmail account sending OTP mail   |
+| `SMTP_APP_PASSWORD` | empty                    | 16-char Gmail App Password       |
+| `SMTP_FROM`      | `TradeLog <SMTP_USER>`      | Sender shown on verification mail|
+| `AUTH_DEV_CODE`  | `true`                      | Fallback when SMTP is not set    |
+| `MT5_PYTHON`     | `.venv` / `py -3.12`        | Python interpreter for the worker|
+| `MT5_WORKER_PATH`| `backend/mt5_worker.py`     | Internal stdio worker script     |
+| `MT5_TERMINAL_PATH` | auto-detect              | Exact broker terminal when needed|
+| `MT5_REQUEST_TIMEOUT_MS` | `30000`              | Worker request timeout           |
+| `MT5_CACHE_TTL_SECONDS` | `60`                 | History/symbol cache lifetime    |
+| `MT5_SESSION_GAP_MULTIPLIER` | `3`           | Broker-session gap detection     |
+| `MT5_MAX_SESSION_HOURS` | `30`                 | Max inferred session span        |
+| `MT5_MAX_REQUEST_BARS` | `5000`               | Per-request bar cap              |
 
 Never commit `.env`; use `.env.example` as the template.
 
@@ -71,16 +83,48 @@ protected requests.
 
 The two `*-code` endpoints back the Flutter Create Account → OTP flow. Codes
 are bcrypt-hashed in Postgres, expire after 10 minutes, allow five attempts and
-are deleted on success. No email/SMS provider is configured, so development
-returns the code as `devCode` (disable with `AUTH_DEV_CODE=false`; never enable
-it in production). A wrong code returns `401`, an expired one `400`.
+are deleted on success. Set `SMTP_APP_PASSWORD` to a Gmail App Password to send
+the 6-digit code to the email entered on Create Account; the response then has
+`delivery: "email"` and no `devCode`. Without it, development falls back to
+`delivery: "dev"` and echoes `devCode` so the screen is still testable (disable
+that with `AUTH_DEV_CODE=false`; never enable it in production). A wrong code
+returns `401`, an expired one `400`.
 
-### Candles (public)
+### MT5 historical market data (public)
 
-`GET /api/candles?symbol=AAPL&interval=1d&period1=1762000000&period2=1763000000`
+NestJS remains the only HTTP API. `GET /api/mt5/*` talks to an internal,
+read-only Python stdio worker that uses the official `MetaTrader5` package and
+the locally logged-in terminal. There is no FastAPI service or extra port.
 
-Proxy of the original Cloudflare function. `interval` accepts `1m`, `5m`,
-`15m`, `30m`, `1h`, `4h`, `1d`; the range is capped at 400 days.
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| GET | `/mt5/status` | Initialized/connected state, broker/server names; soft-degrades to 200 with an error when disconnected |
+| GET | `/mt5/symbols?search=XAU` | Exact broker symbols from the terminal |
+| GET | `/mt5/candles?symbol=XAUUSDc&date=2026-11-24&timeframe=M15` | Full broker session OHLC candles in UTC |
+| GET | `/mt5/latest?symbol=XAUUSDc&timeframe=M15&count=200` | Latest real candles |
+| GET | `/mt5/ticks?symbol=XAUUSDc&start=...&end=...` | Read-only ticks for future live updates |
+
+Always pass the exact symbol from the imported trade (the verified Exness symbol
+is `XAUUSDc`); symbols are never guessed. Validation errors return `400`, an
+unknown symbol `404`, a failed MT5 call `502`, MT5/worker unavailability `503`
+and worker timeouts `504`. An empty weekend/holiday session is a successful
+`200` with `candles: []` and a `reason`.
+
+`timeframe` accepts `M1`, `M5`, `M15`, `M30`, `H1`, `H4`, `D1`. Candle responses
+include `source: "mt5"`, `timezone: "UTC"`, `sessionStart`, `sessionEnd`, and
+OHLC/tick volume/spread/real volume. Session boundaries come from the broker's
+actual bars, not the PC timezone; weekends and holidays return an empty result
+with a `reason`. No order operations are exposed and no MT5 credentials are
+returned.
+
+Windows setup, interpreter requirements, and troubleshooting are in
+`../implement/mt5_windows_setup.md`. Worker tests:
+
+```bash
+python -m venv .venv          # use py -3.12 on Windows
+.venv\Scripts\python.exe -m pip install -r requirements-mt5.txt
+.venv\Scripts\python.exe -m pytest tests/test_mt5_worker.py -q
+```
 
 ### Strategies
 

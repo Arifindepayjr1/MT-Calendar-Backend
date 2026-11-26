@@ -20,6 +20,7 @@ import {
   SignUpDto,
   VerifyCodeDto,
 } from './auth.models';
+import { MailService } from './mail.service';
 import { User } from './user.entity';
 
 @Injectable()
@@ -38,6 +39,7 @@ export class AuthService implements OnModuleInit {
     @InjectRepository(AuthCode) private readonly codes: Repository<AuthCode>,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly mail: MailService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -111,9 +113,23 @@ export class AuthService implements OnModuleInit {
     const response: RequestCodeResponseDto = {
       email,
       expiresInSeconds: AuthService.CODE_TTL_SECONDS,
+      delivery: 'dev',
     };
-    // Email/SMS delivery is not configured in this workspace, so development
-    // echoes the code to make the OTP screen testable end to end.
+
+    // Gmail is the primary channel once SMTP_APP_PASSWORD is configured.
+    // Without it, development echoes the code so the OTP screen stays testable;
+    // a sent email never exposes its code in the API response.
+    const delivered = await this.mail.sendOtp(
+      email,
+      dto.name.trim(),
+      code,
+      AuthService.CODE_TTL_SECONDS / 60,
+    );
+    if (delivered) {
+      response.delivery = 'email';
+      return response;
+    }
+
     const devCodeEnabled =
       this.config.get<string>('NODE_ENV') !== 'production' &&
       this.config.get<string>('AUTH_DEV_CODE') !== 'false';

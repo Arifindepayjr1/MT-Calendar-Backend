@@ -1,13 +1,15 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { NotFoundHtmlFilter } from './common/not-found.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Matches the /api/candles and /api/strategies paths used by the Flutter client.
+  // Matches the /api/mt5, /api/auth and /api/strategies paths used by the client.
   app.setGlobalPrefix('api');
   app.enableCors();
+  app.useGlobalFilters(new NotFoundHtmlFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

@@ -79,6 +79,8 @@ export interface AuthResponseDto {
 export interface RequestCodeResponseDto {
   email: string;
   expiresInSeconds: number;
-  /** Only present when AUTH_DEV_CODE is enabled (development default). */
+  /** `email` once Gmail is configured, `dev` when the code is echoed locally. */
+  delivery: 'email' | 'dev';
+  /** Only present for the local fallback — never when an email was sent. */
   devCode?: string;
 }
